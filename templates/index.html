@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BIG BONANZA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Vegas CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vegas/2.5.4/vegas.min.css">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #my-slideshow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .header-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 2;
+    }
+
+    .logo {
+      height: 80px;
+      width: auto;
+      filter: drop-shadow(7px 7px 7px rgba(0, 0, 0, 0.5));
+    }
+
+    .promo-text {
+      margin: 0;
+      color: white;
+      font-weight: bold;
+      font-size: 45px;
+      font-family: 'Segoe UI Black';
+      text-align: right;
+      line-height: 1.4;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .highlight {
+      color: #FFD700;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+    }
+
+    .footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 2;
+    }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .metric-label {
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 47px;
+      font-family: 'Segoe UI Black';
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+      margin-bottom: 5px;
+    }
+
+    .metric-value {
+      color: white;
+      font-weight: bold;
+      font-family: 'Segoe UI Black';
+      font-size: 47px;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    #clock.metric-value {
+      font-size: 45px;
+    }
+
+    @keyframes glowPulse {
+      0% {
+        text-shadow: 0 0 2px #FFD700, 0 0 5px #FFD700, 0 0 10px #FFD700;
+      }
+      25% {
+        text-shadow: 0 0 10px #FFD700, 0 0 15px #FFD700, 0 0 30px #FFD700;
+      }
+      50% {
+        text-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700, 0 0 45px #FFD700;
+      }
+      100% {
+        text-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 20px #FFD700;
+      }
+    }
+
+    .glow {
+      animation: glowPulse 1s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-bar">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="LONDON & SCOTLAND" class="logo">
+    <p class="promo-text">
+      <b>Let's Smash the <span class="highlight">Target</span> to Get<br><span class="highlight">2</span> Months <span class="highlight">Bonus</span> + <span class="highlight">Trip</span></b>
+    </p>
+  </div>
+
+  <div id="my-slideshow"></div>
+
+  <div class="footer-bar">
+    <div class="metric">
+      <span class="metric-label">TARGET</span>
+      <span class="metric-value">{{ target }}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">ACHIEVED</span>
+      <span class="metric-value">{{ achieved }}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">BALANCE</span>
+      <span class="metric-value">{{ balance }}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">DAYS LEFT</span>
+      <span class="metric-value">{{ days_left }}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">TIME LEFT</span>
+      <span id="clock" class="metric-value">00:00:00</span>
+    </div>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Vegas JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vegas/2.5.4/vegas.min.js"></script>
+
+  <!-- Countdown Timer Script -->
+  <script>
+    const countdownTarget = new Date("{{ goal_deadline }}");
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = countdownTarget - now;
+
+      const clock = document.getElementById('clock');
+
+      if (diff <= 0) {
+        clock.textContent = "00:00:00";
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+
+      clock.textContent = `${hours}:${minutes}:${seconds}`;
+
+      // Force glow animation restart
+      clock.classList.remove('glow');
+      void clock.offsetWidth; // Force reflow
+      clock.classList.add('glow');
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  </script>
+
+  <!-- Vegas Initialization -->
+  <script>
+    $(function() {
+      $('#my-slideshow').vegas({
+        slides: [{
+          video: {
+            src: [
+              '{{ url_for("static", filename="videos/background.mp4") }}',
+              '{{ url_for("static", filename="videos/background.webm") }}'
+            ],
+            loop: true,
+            mute: true
+          }
+        }],
+        delay: 10000,
+        transition: 'fade',
+        cover: true,
+        valign: 'center',
+        align: 'center',
+        overlay: false,
+        autoplay: true,
+        animation: 'kenburns',
+        animationDuration: 20000
+      });
+    });
+  </script>
+
+</body>
+</html>
